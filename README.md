@@ -6,7 +6,7 @@ I built this project to develop a concrete understanding of state estimation and
 
 ## Overview
 
-A 3D Extended Kalman Filter (EKF) for UAV position, velocity, and attitude estimation, implemented in both MATLAB and Simulink. The filter fuses low-rate GPS position measurements with high-rate drone dynamics to estimate states that GPS cannot directly measure, including velocity and attitude.
+A 3D Extended Kalman Filter (EKF) for UAV position, velocity, and attitude estimation, implemented in MATLAB, Simulink, and C++. The filter fuses low-rate GPS position measurements with high-rate drone dynamics to estimate states that GPS cannot directly measure, including velocity and attitude.
 
 A GPS dropout scenario is included to demonstrate dead-reckoning behavior during signal loss and automatic re-convergence on GPS recovery.
 
@@ -50,25 +50,40 @@ Between t=3s and t=5s the GPS signal is cut. During dropout the filter runs pred
 
 ## File Structure
 
-```
-compute_jacobian.m    # Analytical 8x8 Jacobian of drone dynamics
-ekf_step.m            # Full EKF predict/update cycle
-state_transition.m    # Nonlinear drone state transition (physics)
-params.m              # All simulation constants
-run_simulation.m      # 2D MATLAB simulation with GPS dropout plots
-plot_results.m        # Plotting script for Simulink output
-ekf_drone_3d.slx      # Simulink model: drone plant, GPS sensor, EKF block
-```
+**MATLAB implementation:**
+- `compute_jacobian.m` - Analytical Jacobian of drone dynamics
+- `ekf_step.m` - Full EKF predict/update cycle
+- `state_transition.m` - Nonlinear drone state transition
+- `params.m` - All simulation constants
+- `run_simulation.m` - 2D MATLAB simulation with GPS dropout plots
+- `plot_results.m` - Plotting script for Simulink output
+- `ekf_drone_3d.slx` - Simulink model: drone plant, GPS sensor, EKF block
+
+**C++ implementation:**
+- `ekf.h` - EKF class definition
+- `ekf.cpp` - Predict/update implementation using Eigen
+- `main.cpp` - Simulation loop and CSV output
 
 ## MATLAB vs Simulink
 
 The MATLAB scripts implement a 2D version (5-state) used to validate the filter math before building in Simulink. The Simulink model implements the full 3D version (8-state) as a block diagram with a drone dynamics subsystem, GPS sensor with noise, dropout logic, and EKF feedback loops.
 
+## C++ Port
+
+The filter was ported to C++ using the Eigen library, implementing the full predict-update cycle, Jacobian computation, and GPS dropout logic in a compiled environment. Results are written to `results.csv` for comparison against the MATLAB baseline.
+
+Build and run:
+
+```bash
+g++ -I path/to/eigen main.cpp ekf.cpp -o ekf_sim
+./ekf_sim
+```
+
 ## How to Run
 
 **MATLAB (2D validation):**
 ```matlab
-run_simulation   % runs simulation and plots results
+run_simulation
 ```
 
 **Simulink (3D full model):**
@@ -78,4 +93,5 @@ run_simulation   % runs simulation and plots results
 
 ## Dependencies
 
-MATLAB R2024a or later with Simulink.
+- MATLAB R2024a or later with Simulink
+- C++: Eigen 3.x (header-only, no installation required)
